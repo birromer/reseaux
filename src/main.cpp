@@ -18,10 +18,11 @@ int main(int argc, char *argv[])
 
   if (type == 'c') {
     std::cout << "starting client" << std::endl;
+
   } else if (type == 's') {
     std::cout << "starting server with message " << welcome_message << std::endl;
-  }
 
+  }
 
   return 0;
 }
