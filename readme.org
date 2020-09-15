@@ -1,0 +1,2 @@
+* Telnet-like server with webpage support
+  This is a simple implementation of a tcp server that parses received packets and displays in a webpage. When received information is not HTTP 1.1 compatible it sends it back.
