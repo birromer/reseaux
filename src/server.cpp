@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
       cout << "Success creating socket" << endl;
 
     const int opt = 1;
-    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)); // set option in order not to fail relaunch
 
     // configuring the server address structure
     serv_addr.sin_family      = AF_INET;                         // byte order for ipv4
