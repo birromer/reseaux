@@ -100,11 +100,15 @@ int main(int argc, char *argv[])
         return -1;
 
       } else if (test_http(buffer)) {
-        cout << "Connecting to web client." << endl;
-        sprintf(web_message, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: %d\n\n<!DOCTYPE html><html><head><title>%s</title></head><body>%s</body></html>", (int)strlen(welcome_message)*2+69, welcome_message, welcome_message);
+        if (verbose)
+          cout << "Connecting to web client." << endl;
+
+        sprintf(web_message, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: %d\n\n<!DOCTYPE html><html><head><title>%s</title></head><body>%s</body></html>", (int)strlen(custom_message)*2+69, custom_message, custom_message);
         send(clifd, custom_message, sizeof(custom_message), 0); // sends welcome message the web page 
-        cout << "Disconnecting from web client." << endl;
         out = 1;
+
+        if (verbose)
+          cout << "Disconnecting from web client." << endl;
 
       } else {
         send(clifd, custom_message, sizeof(custom_message), 0); // sends welcome message to new connection
@@ -205,4 +209,5 @@ void gen_personal_welcome(char welcome_message[], char personalized_message[], c
   strcpy(personalized_message, welcome_message);
   strcat(personalized_message, "\nYour ip is ");
   strcat(personalized_message, hostname);
+  strcat(personalized_message, "\0");
 }
