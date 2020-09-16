@@ -16,6 +16,7 @@ typedef int SOCKET;
 
 using namespace std;
 
+bool test_http(char buffer[]);
 int process_connection(SOCKET *sockfd, SOCKET *clifd, struct sockaddr *cli_addr, char buffer[]);
 void parse_args(int argc, char* argv[], bool *help, bool *verbose, int *port, char message[]);
 void show_help();
@@ -84,21 +85,31 @@ int main(int argc, char *argv[])
     int out;
 
     char web_message[2048];
-    sprintf(web_message, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: %d\n\n<!DOcTYPE html><html><head><title>%s</title></head><body>%s</body></html>", strlen(buffer)*2+69, buffer, buffer);
+    sprintf(web_message, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: %d\n\n<!DOCTYPE html><html><head><title>%s</title></head><body>%s</body></html>", strlen(buffer)*2+69, buffer, buffer);
 
     do {
       clifd = accept(sockfd, (struct sockaddr *)&cli_addr, &socklen);  // takes address of first connection in the queue
     
       if (verbose)
         cout << "received connection from " << inet_ntoa(cli_addr.sin_addr) << " at port " << ntohs(cli_addr.sin_port) << endl;
-    
-      //send(clifd, buffer, sizeof(buffer), 0); // sends welcome message to new connection
-      send(clifd, web_message, sizeof(web_message), 0); // sends welcome message to new connection
 
-      out = process_connection(&sockfd, &clifd, (struct sockaddr *)&cli_addr, buffer);
+      if (recv(clifd, buffer, sizeof(char)*BUFFER_SIZE, 0) == -1) {// receives input from connection
+        cout << "Error reading message from socket" << endl;
+
+      } else if (test_http(buffer)) {
+        if (verbose)
+          cout << "Connecting to web client." << endl;
+        send(clifd, web_message, sizeof(web_message), 0); // sends welcome message the web page 
+        break;
+
+      } else {
+        send(clifd, buffer, sizeof(buffer), 0); // sends welcome message to new connection
+        out = process_connection(&sockfd, &clifd, (struct sockaddr *)&cli_addr, buffer);
+      }
 
     } while (out >= 0);
 
+    cout << "Shutting down and closing server." << endl;
     shutdown(clifd, SHUT_RDWR);
     close(clifd);
     shutdown(sockfd, SHUT_RDWR);
@@ -107,6 +118,16 @@ int main(int argc, char *argv[])
 
   return 0;
 }
+
+bool test_http(char buffer[]) {
+  int i;
+  for (i = 0; i < strlen(buffer); i++) {
+    if (buffer[i] == '1' && buffer[i-1] == '.' && buffer[i-2] == '1' && buffer[i-3])
+      return true;
+  }
+  return false;
+}
+
 int process_connection(SOCKET *sockfd, SOCKET *clifd, struct sockaddr *cli_addr, char buffer[]) {
     memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);
     cout << endl << "Message being typed by the client: " << endl;
@@ -123,7 +144,6 @@ int process_connection(SOCKET *sockfd, SOCKET *clifd, struct sockaddr *cli_addr,
           send(*clifd, buffer, sizeof(char)*BUFFER_SIZE, 0); // sends -1 to he client to indicate the end 
           memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);
           return 0;
-
         } else {
           cout << "* Quit command received. *" << endl;
           return -1;
