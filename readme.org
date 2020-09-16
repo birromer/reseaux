@@ -1,2 +1,27 @@
 * Telnet-like server with webpage support
   This is a simple implementation of a tcp server that parses received packets and displays in a webpage. When received information is not HTTP 1.1 compatible it sends it back.
+  
+  ** Compiling and running
+  In order to compile the client and server the follow commands must be run:
+  ~make build/server~
+  ~make build/client~
+  
+  Their respective executables will be on the =build/= folder.
+  
+  The server has the following options:
+  =
+  ( -h  | --help )              : Displays help message
+  ( -v  | --verbose )           : Displays more processing information
+  ( -n  | --hostname) <STRING>  : Hostname of the server to connect
+  ( -p  | --port) <N>           : Port to which connect in the informed hostname
+  =
+  
+  The client has the following options
+  =
+  ( -h  | --help )              : Displays help message
+  ( -v  | --verbose )           : Displays more processing information
+  ( -p  | --port) <N>           : Port to which bind the socket
+  ( -m  | --message ) <STRING>  : Welcome message to greet new connection
+  =
+  obs: hostname defaults to localhost  
+  
