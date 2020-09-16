@@ -90,9 +90,10 @@ int main(int argc, char *argv[])
       send(clifd, buffer, sizeof(buffer), 0); // sends welcome message to new connection
 
       out = process_connection(&sockfd, &clifd, (struct sockaddr *)&cli_addr, buffer);
+      cout << "out: " << out << endl;
 
       cout << endl << "End of message." << endl;
-    } while (out > 0);
+    } while (out >= 0);
 
     shutdown(clifd, SHUT_RDWR);
     close(clifd);
@@ -115,7 +116,7 @@ int process_connection(SOCKET *sockfd, SOCKET *clifd, struct sockaddr *cli_addr,
 
         if (buffer[0] == ' ') {
           strcpy(buffer, "-1");
-          send(*clifd, buffer, sizeof(char)*BUFFER_SIZE, 0); // sends welcome message to new connection
+          send(*clifd, buffer, sizeof(char)*BUFFER_SIZE, 0); // sends -1 to he client to indicate the end 
           memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);
           return 0;
 
@@ -123,6 +124,7 @@ int process_connection(SOCKET *sockfd, SOCKET *clifd, struct sockaddr *cli_addr,
           cout << "Quit command received." << endl;
           return -1;
         }
+
       } else {
         send(*clifd, buffer, sizeof(char)*BUFFER_SIZE, 0); // sends welcome message to new connection
         cout << buffer << endl;
