@@ -3,23 +3,27 @@
   
 ** Compiling and running
   In order to compile the client and server the follow commands must be run:
-  
+  #+BEGIN_EXAMPLE
   ~make build/server~
-  
   ~make build/client~
-  
+  #+END_EXAMPLE
+
   Their respective executables will be on the =build/= folder.
   
   The server has the following options:
-  =( -h  | --help )              : Displays help message
+  #+BEGIN_EXAMPLE
+  ( -h  | --help )              : Displays help message
   ( -v  | --verbose )           : Displays more processing information
   ( -n  | --hostname) <STRING>  : Hostname of the server to connect
-  ( -p  | --port) <N>           : Port to which connect in the informed hostname=
+  ( -p  | --port) <N>           : Port to which connect in the informed hostname
+  #+END_EXAMPLE
   
   The client has the following options
-  =( -h  | --help )              : Displays help message
+  #+BEGIN_EXAMPLE
+  ( -h  | --help )              : Displays help message
   ( -v  | --verbose )           : Displays more processing information
   ( -p  | --port) <N>           : Port to which bind the socket
-  ( -m  | --message ) <STRING>  : Welcome message to greet new connection=
+  ( -m  | --message ) <STRING>  : Welcome message to greet new connection
+  #+END_EXAMPLE
   obs: hostname defaults to localhost  
   
