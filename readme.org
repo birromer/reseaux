@@ -4,8 +4,8 @@
 ** Compiling and running
   In order to compile the client and server the follow commands must be run:
   #+BEGIN_EXAMPLE
-  ~make build/server~
-  ~make build/client~
+  make build/server
+  make build/client
   #+END_EXAMPLE
 
   Their respective executables will be on the =build/= folder.
