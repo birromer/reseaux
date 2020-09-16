@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include <sys/socket.h>
+#include <netdb.h>
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -18,6 +19,7 @@ using namespace std;
 
 bool test_http(char buffer[]);
 int process_connection(SOCKET *sockfd, SOCKET *clifd, struct sockaddr *cli_addr, char buffer[]);
+void gen_personal_welcome(char welcome_message[], char personalized_message[], char hostname[]);
 void parse_args(int argc, char* argv[], bool *help, bool *verbose, int *port, char message[]);
 void show_help();
 
@@ -28,6 +30,8 @@ int main(int argc, char *argv[])
   bool help = false;
   int port_no = DEFAULT_PORT;
   char welcome_message[BUFFER_SIZE];
+  char custom_message[BUFFER_SIZE];
+  char web_message[2048];
   char buffer[BUFFER_SIZE];
 
   memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);          // initializes both buffers to null char
@@ -35,12 +39,6 @@ int main(int argc, char *argv[])
 
   // reads arguments
   parse_args(argc, argv, &help, &verbose, &port_no, welcome_message);
-//  for (int i = 0; i < BUFFER_SIZE; i++) {
-//    if (buffer[i] == '\0') {
-//      buffer[i+1] = '\n';
-//      break;
-//    }
-//  }
 
   if (argc < 2) {
     cout << "Too few arguments." << endl;
@@ -53,7 +51,7 @@ int main(int argc, char *argv[])
   }
  
   if (starting_condition) {
-    cout << "starting server with message \"" << buffer << "\"" << endl;
+    cout << "starting server with message \"" << welcome_message << "\"" << endl;
 
     SOCKET sockfd, clifd;
 
@@ -86,12 +84,13 @@ int main(int argc, char *argv[])
     socklen_t socklen = sizeof(cli_addr);
 
     int out;
-
-    char web_message[2048];
-    sprintf(web_message, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: %d\n\n<!DOCTYPE html><html><head><title>%s</title></head><body>%s</body></html>", strlen(buffer)*2+69, buffer, buffer);
+    char hostname[BUFFER_SIZE];
+    char service[BUFFER_SIZE];
 
     do {
       clifd = accept(sockfd, (struct sockaddr *)&cli_addr, &socklen);  // takes address of first connection in the queue
+      getnameinfo((const sockaddr*)&cli_addr, sizeof(cli_addr), hostname, sizeof(hostname), service, sizeof(service), 0);
+      gen_personal_welcome(welcome_message, custom_message, hostname);
     
       if (verbose)
         cout << "Received connection from " << inet_ntoa(cli_addr.sin_addr) << " at port " << ntohs(cli_addr.sin_port) << endl;
@@ -101,15 +100,17 @@ int main(int argc, char *argv[])
         return -1;
 
       } else if (test_http(buffer)) {
-        if (verbose)
-          cout << "Connecting to web client." << endl;
-        send(clifd, web_message, sizeof(web_message), 0); // sends welcome message the web page 
-        break;
+        cout << "Connecting to web client." << endl;
+        sprintf(web_message, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: %d\n\n<!DOCTYPE html><html><head><title>%s</title></head><body>%s</body></html>", (int)strlen(welcome_message)*2+69, welcome_message, welcome_message);
+        send(clifd, custom_message, sizeof(custom_message), 0); // sends welcome message the web page 
+        cout << "Disconnecting from web client." << endl;
+        out = 1;
 
       } else {
-        send(clifd, welcome_message, sizeof(welcome_message), 0); // sends welcome message to new connection
+        send(clifd, custom_message, sizeof(custom_message), 0); // sends welcome message to new connection
         out = process_connection(&sockfd, &clifd, (struct sockaddr *)&cli_addr, buffer);
       }
+
 
     } while (out >= 0);
 
@@ -197,4 +198,11 @@ void show_help() {
   cout << "( -v  | --verbose )           : Displays more processing information" << endl;
   cout << "( -p  | --port) <N>           : Port to which bind the socket" << endl;
   cout << "( -m  | --message ) <STRING>  : Welcome message to greet new connection" << endl;
+}
+
+void gen_personal_welcome(char welcome_message[], char personalized_message[], char hostname[]) {
+  memset(personalized_message, '\0', sizeof(char)*BUFFER_SIZE);
+  strcpy(personalized_message, welcome_message);
+  strcat(personalized_message, "\nYour ip is ");
+  strcat(personalized_message, hostname);
 }
