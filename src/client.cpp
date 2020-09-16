@@ -73,25 +73,27 @@ int main(int argc, char *argv[])
       cout << "Welcome message: " << buffer << endl;
     
     cout << "Please, type in your message. Press space to exit." << endl;
-    char letra[1];
+    char c[2];
+    c[1] = '\0';
     system("stty raw");
     do {
-
       cout << "\r\nYour input: ";
-      letra[0] = getchar();
+      c[0] = getchar();
 
-      send(sockfd, letra, sizeof(letra), 0); // sends welcome message to new connection
+      send(sockfd, c, sizeof(c), 0); // sends character typed by the client to the server 
 
       memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);
+
       if (recv(sockfd, buffer, sizeof(buffer), 0) == -1) {// receives input from connection
         cout << endl << "Error reading message from socket" << endl;
+
       } else if (!strcmp(buffer, "-1")) {
         cout << "\r\nEnd of connection" << endl;
+
       } else {
         cout << "\r\nServer response: " << buffer << endl;
       }
-
-    } while (letra[0] != ' ');
+    } while (c[0] != ' ' && c[0] != '0');
     system("stty cooked");
 
     shutdown(sockfd, SHUT_RDWR);

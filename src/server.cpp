@@ -15,6 +15,7 @@ typedef int SOCKET;
 
 using namespace std;
 
+int process_connection(SOCKET *sockfd, SOCKET *clifd, struct sockaddr *cli_addr, char buffer[]);
 void parse_args(int argc, char* argv[], bool *help, bool *verbose, int *port, char message[]);
 void show_help();
 
@@ -77,38 +78,21 @@ int main(int argc, char *argv[])
       cout << "Success binding socket to address " << inet_ntoa(serv_addr.sin_addr) << " at port " <<htons(serv_addr.sin_port) << endl;
 
     listen(sockfd, QUEUE_SIZE);  // starts queueing at most QUEUE_SIZE connections
-
     socklen_t socklen = sizeof(cli_addr);
-    clifd = accept(sockfd, (struct sockaddr *)&cli_addr, &socklen);  // takes address of first connection in the queue
-    
-    if (verbose)
-      cout << "received connection from " << inet_ntoa(cli_addr.sin_addr) << " at port " << ntohs(cli_addr.sin_port) << endl;
-    
-    send(clifd, buffer, sizeof(buffer), 0); // sends welcome message to new connection
 
-
-    memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);
-    cout << "Message being typed by the client: " << endl;
+    int out;
     do {
+      clifd = accept(sockfd, (struct sockaddr *)&cli_addr, &socklen);  // takes address of first connection in the queue
+    
+      if (verbose)
+        cout << "received connection from " << inet_ntoa(cli_addr.sin_addr) << " at port " << ntohs(cli_addr.sin_port) << endl;
+    
+      send(clifd, buffer, sizeof(buffer), 0); // sends welcome message to new connection
 
-      if (recv(clifd, buffer, sizeof(buffer), 0) == -1) {// receives input from connection
-        cout << "Error reading message from socket" << endl;
+      out = process_connection(&sockfd, &clifd, (struct sockaddr *)&cli_addr, buffer);
 
-      } else if (buffer[0] != ' ') {
-        send(clifd, buffer, sizeof(buffer), 0); // sends welcome message to new connection
-        cout << buffer << endl;
-        memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);
-
-      } else {
-        strcpy(buffer, "-1");
-        send(clifd, buffer, sizeof(buffer), 0); // sends welcome message to new connection
-        cout << "Client left." << endl;
-        memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);
-      }
-
-    } while (strcmp(buffer, "0\0"));
-
-    cout << endl << "End of message." << endl;
+      cout << endl << "End of message." << endl;
+    } while (out > 0);
 
     shutdown(clifd, SHUT_RDWR);
     close(clifd);
@@ -117,6 +101,35 @@ int main(int argc, char *argv[])
   }
 
   return 0;
+}
+int process_connection(SOCKET *sockfd, SOCKET *clifd, struct sockaddr *cli_addr, char buffer[]) {
+    memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);
+    cout << "Message being typed by the client: " << endl;
+    do {
+
+      if (recv(*clifd, buffer, sizeof(char)*BUFFER_SIZE, 0) == -1) {// receives input from connection
+        cout << "Error reading message from socket" << endl;
+
+      } else if (buffer[0] == '0' || buffer[0] == ' ') {
+        cout << "Client left." << endl;
+
+        if (buffer[0] == ' ') {
+          strcpy(buffer, "-1");
+          send(*clifd, buffer, sizeof(char)*BUFFER_SIZE, 0); // sends welcome message to new connection
+          memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);
+          return 0;
+
+        } else {
+          cout << "Quit command received." << endl;
+          return -1;
+        }
+      } else {
+        send(*clifd, buffer, sizeof(char)*BUFFER_SIZE, 0); // sends welcome message to new connection
+        cout << buffer << endl;
+        memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);
+      }
+
+    } while (true);
 }
 
 void parse_args(int argc, char* argv[], bool *help, bool *verbose, int *port, char message[]) {
