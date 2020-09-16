@@ -27,17 +27,20 @@ int main(int argc, char *argv[])
   bool verbose = true;
   bool help = false;
   int port_no = DEFAULT_PORT;
-  char buffer[256];
-  memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);
+  char welcome_message[BUFFER_SIZE];
+  char buffer[BUFFER_SIZE];
+
+  memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);          // initializes both buffers to null char
+  memset(welcome_message, '\0', sizeof(char)*BUFFER_SIZE);
 
   // reads arguments
-  parse_args(argc, argv, &help, &verbose, &port_no, buffer);
-  for (int i = 0; i < BUFFER_SIZE; i++) {
-    if (buffer[i] == '\0') {
-      buffer[i+1] = '\n';
-      break;
-    }
-  }
+  parse_args(argc, argv, &help, &verbose, &port_no, welcome_message);
+//  for (int i = 0; i < BUFFER_SIZE; i++) {
+//    if (buffer[i] == '\0') {
+//      buffer[i+1] = '\n';
+//      break;
+//    }
+//  }
 
   if (argc < 2) {
     cout << "Too few arguments." << endl;
@@ -104,7 +107,7 @@ int main(int argc, char *argv[])
         break;
 
       } else {
-        send(clifd, buffer, sizeof(buffer), 0); // sends welcome message to new connection
+        send(clifd, welcome_message, sizeof(welcome_message), 0); // sends welcome message to new connection
         out = process_connection(&sockfd, &clifd, (struct sockaddr *)&cli_addr, buffer);
       }
 
@@ -134,26 +137,30 @@ int process_connection(SOCKET *sockfd, SOCKET *clifd, struct sockaddr *cli_addr,
     cout << endl << "Message being typed by the client: " << endl;
     do {
 
-      if (recv(*clifd, buffer, sizeof(char)*BUFFER_SIZE, 0) == -1) {// receives input from connection
+      // receives input from connection
+      if (recv(*clifd, buffer, sizeof(char)*BUFFER_SIZE, 0) == -1) { // error if received value is -1
         cout << "Error reading message from socket" << endl;
         return -1;
 
-      } else if (buffer[0] == '0' || buffer[0] == ' ') {
+      } else if (buffer[0] == '0' || buffer[0] == ' ') { // '0' and ' ' are the escape cases
         cout << "End of message. Client left." << endl;
 
-        if (buffer[0] == ' ') {
+        if (buffer[0] == ' ') {  // escape case for client to leave connection
+          memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);  
           strcpy(buffer, "-1");
-          send(*clifd, buffer, sizeof(char)*BUFFER_SIZE, 0); // sends -1 to he client to indicate the end 
-          memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);
-          return 0;
+          send(*clifd, buffer, sizeof(char)*BUFFER_SIZE, 0); // sends -1 to he client to indicate  that it can disconnect
+          return 0;  // return 0 for server to know that it should continue accepting connections  
+
         } else {
           cout << "* Quit command received. *" << endl;
-          return 0;
+          strcpy(buffer, "-1");
+          send(*clifd, buffer, sizeof(char)*BUFFER_SIZE, 0); // sends -1 to he client to indicate the end 
+          return -1;  // return -1 for server to know that it should close
         }
 
-      } else {
-        cout << buffer << endl;
-        send(*clifd, buffer, sizeof(char)*BUFFER_SIZE, 0); // sends welcome message to new connection
+      } else {                  // if it is none of the escape cases
+        cout << buffer << endl; // just informs of the received character and sends it back
+        send(*clifd, buffer, sizeof(char)*BUFFER_SIZE, 0); // sends received char back to client 
         memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);
       }
 
