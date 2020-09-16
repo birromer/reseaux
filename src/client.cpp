@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     c[1] = '\0';
     system("stty raw");
     do {
-      cout << "\r\nYour input: ";
+      cout << "\r\nYour input (' ' quits client, 0 quits server): ";
       c[0] = getchar();
 
       send(sockfd, c, sizeof(c), 0); // sends character typed by the client to the server 

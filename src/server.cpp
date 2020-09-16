@@ -90,9 +90,6 @@ int main(int argc, char *argv[])
       send(clifd, buffer, sizeof(buffer), 0); // sends welcome message to new connection
 
       out = process_connection(&sockfd, &clifd, (struct sockaddr *)&cli_addr, buffer);
-      cout << "out: " << out << endl;
-
-      cout << endl << "End of message." << endl;
     } while (out >= 0);
 
     shutdown(clifd, SHUT_RDWR);
@@ -105,14 +102,14 @@ int main(int argc, char *argv[])
 }
 int process_connection(SOCKET *sockfd, SOCKET *clifd, struct sockaddr *cli_addr, char buffer[]) {
     memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);
-    cout << "Message being typed by the client: " << endl;
+    cout << endl << "Message being typed by the client: " << endl;
     do {
 
       if (recv(*clifd, buffer, sizeof(char)*BUFFER_SIZE, 0) == -1) {// receives input from connection
         cout << "Error reading message from socket" << endl;
 
       } else if (buffer[0] == '0' || buffer[0] == ' ') {
-        cout << "Client left." << endl;
+        cout << "End of message. Client left." << endl;
 
         if (buffer[0] == ' ') {
           strcpy(buffer, "-1");
@@ -121,13 +118,13 @@ int process_connection(SOCKET *sockfd, SOCKET *clifd, struct sockaddr *cli_addr,
           return 0;
 
         } else {
-          cout << "Quit command received." << endl;
+          cout << "* Quit command received. *" << endl;
           return -1;
         }
 
       } else {
-        send(*clifd, buffer, sizeof(char)*BUFFER_SIZE, 0); // sends welcome message to new connection
         cout << buffer << endl;
+        send(*clifd, buffer, sizeof(char)*BUFFER_SIZE, 0); // sends welcome message to new connection
         memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);
       }
 
