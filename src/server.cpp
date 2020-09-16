@@ -83,8 +83,8 @@ int main(int argc, char *argv[])
 
     int out;
 
-    char web_message[256];
-    sprintf(web_message, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: %d\n\n%s", strlen(buffer), buffer);
+    char web_message[2048];
+    sprintf(web_message, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: %d\n\n<!DOcTYPE html><html><head><title>%s</title></head><body>%s</body></html>", strlen(buffer)*2+69, buffer, buffer);
 
     do {
       clifd = accept(sockfd, (struct sockaddr *)&cli_addr, &socklen);  // takes address of first connection in the queue
