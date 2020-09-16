@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string.h>
 #include <unistd.h>
+#include <sstream>
 
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -81,15 +82,21 @@ int main(int argc, char *argv[])
     socklen_t socklen = sizeof(cli_addr);
 
     int out;
+
+    char web_message[256];
+    sprintf(web_message, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: %d\n\n%s", strlen(buffer), buffer);
+
     do {
       clifd = accept(sockfd, (struct sockaddr *)&cli_addr, &socklen);  // takes address of first connection in the queue
     
       if (verbose)
         cout << "received connection from " << inet_ntoa(cli_addr.sin_addr) << " at port " << ntohs(cli_addr.sin_port) << endl;
     
-      send(clifd, buffer, sizeof(buffer), 0); // sends welcome message to new connection
+      //send(clifd, buffer, sizeof(buffer), 0); // sends welcome message to new connection
+      send(clifd, web_message, sizeof(web_message), 0); // sends welcome message to new connection
 
       out = process_connection(&sockfd, &clifd, (struct sockaddr *)&cli_addr, buffer);
+
     } while (out >= 0);
 
     shutdown(clifd, SHUT_RDWR);
