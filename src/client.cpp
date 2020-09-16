@@ -61,11 +61,14 @@ int main(int argc, char *argv[])
     serv_addr.sin_port        = htons((unsigned short)port_no);  // port number converted from unsigned short to network byte order
     serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");                      // current hosts ip
 
-    if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1)
+    if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1) {
       cout << "Error connecting to host" << endl;
+      return -1;
+    }
     else if(verbose)
       cout << "Connected to " << inet_ntoa(serv_addr.sin_addr) << " at port " << ntohs(serv_addr.sin_port) << endl;
 
+    send(sockfd, "client", sizeof("client"), 0); // sends character typed by the client to the server 
     memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);
     if (recv(sockfd, buffer, sizeof(buffer), 0) == -1) // receives input from connection
       cout << "Error reading message from socket" << endl;

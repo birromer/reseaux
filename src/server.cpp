@@ -91,10 +91,11 @@ int main(int argc, char *argv[])
       clifd = accept(sockfd, (struct sockaddr *)&cli_addr, &socklen);  // takes address of first connection in the queue
     
       if (verbose)
-        cout << "received connection from " << inet_ntoa(cli_addr.sin_addr) << " at port " << ntohs(cli_addr.sin_port) << endl;
+        cout << "Received connection from " << inet_ntoa(cli_addr.sin_addr) << " at port " << ntohs(cli_addr.sin_port) << endl;
 
       if (recv(clifd, buffer, sizeof(char)*BUFFER_SIZE, 0) == -1) {// receives input from connection
         cout << "Error reading message from socket" << endl;
+        return -1;
 
       } else if (test_http(buffer)) {
         if (verbose)
@@ -135,6 +136,7 @@ int process_connection(SOCKET *sockfd, SOCKET *clifd, struct sockaddr *cli_addr,
 
       if (recv(*clifd, buffer, sizeof(char)*BUFFER_SIZE, 0) == -1) {// receives input from connection
         cout << "Error reading message from socket" << endl;
+        return -1;
 
       } else if (buffer[0] == '0' || buffer[0] == ' ') {
         cout << "End of message. Client left." << endl;
@@ -146,7 +148,7 @@ int process_connection(SOCKET *sockfd, SOCKET *clifd, struct sockaddr *cli_addr,
           return 0;
         } else {
           cout << "* Quit command received. *" << endl;
-          return -1;
+          return 0;
         }
 
       } else {
