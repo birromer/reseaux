@@ -2,11 +2,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <ncurses.h>
 
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <sys/select.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
@@ -66,26 +64,35 @@ int main(int argc, char *argv[])
     if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1)
       cout << "Error connecting to host" << endl;
     else if(verbose)
-      cout << "received connection from " << inet_ntoa(serv_addr.sin_addr) << " at port " << ntohs(serv_addr.sin_port) << endl;
-    
-    char letra[1];
-    system("stty raw");
-    do {
-      letra[0] = getchar();
-      send(sockfd, letra, sizeof(letra), 0); // sends welcome message to new connection
-      printf("%c", letra[0]);
-    } while (letra[0] != ' ');
-    system("stty cooked");
-
-    send(sockfd, buffer, sizeof(buffer), 0); // sends welcome message to new connection
+      cout << "Connected to " << inet_ntoa(serv_addr.sin_addr) << " at port " << ntohs(serv_addr.sin_port) << endl;
 
     memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);
     if (recv(sockfd, buffer, sizeof(buffer), 0) == -1) // receives input from connection
       cout << "Error reading message from socket" << endl;
-    else if (verbose)
-      cout << "Received message: " << buffer << endl;
+    else 
+      cout << "Welcome message: " << buffer << endl;
+    
+    cout << "Please, type in your message. Press space to exit." << endl;
+    char letra[1];
+    system("stty raw");
+    do {
 
-    send(sockfd, buffer, sizeof(buffer), 0); // sends welcome message to new connection
+      cout << "\r\nYour input: ";
+      letra[0] = getchar();
+
+      send(sockfd, letra, sizeof(letra), 0); // sends welcome message to new connection
+
+      memset(buffer, '\0', sizeof(char)*BUFFER_SIZE);
+      if (recv(sockfd, buffer, sizeof(buffer), 0) == -1) {// receives input from connection
+        cout << endl << "Error reading message from socket" << endl;
+      } else if (!strcmp(buffer, "-1")) {
+        cout << "\r\nEnd of connection" << endl;
+      } else {
+        cout << "\r\nServer response: " << buffer << endl;
+      }
+
+    } while (letra[0] != ' ');
+    system("stty cooked");
 
     shutdown(sockfd, SHUT_RDWR);
     close(sockfd);
