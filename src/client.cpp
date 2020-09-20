@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     // configuring the server address structure
     serv_addr.sin_family      = AF_INET;                         // byte order for ipv4
     serv_addr.sin_port        = htons((unsigned short)port_no);  // port number converted from unsigned short to network byte order
-    serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");                      // current hosts ip
+    serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");          // current hosts ip
 
     if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1) {
       cout << "Error connecting to host" << endl;

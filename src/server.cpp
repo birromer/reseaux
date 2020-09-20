@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
   bool help = false;
   int port_no = DEFAULT_PORT;
   char welcome_message[BUFFER_SIZE];
-  char custom_message[BUFFER_SIZE];
+  char custom_message[BUFFER_SIZE*2];
   char web_message[2048];
   char buffer[BUFFER_SIZE];
 
@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
           cout << "Connecting to web client." << endl;
 
         sprintf(web_message, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: %d\n\n<!DOCTYPE html><html><head><title>%s</title></head><body>%s</body></html>", (int)strlen(custom_message)*2+69, custom_message, custom_message);
-        send(clifd, custom_message, sizeof(custom_message), 0); // sends welcome message the web page 
+        send(clifd, web_message, sizeof(web_message), 0); // sends welcome message the web page 
         out = 1;
 
         if (verbose)
@@ -209,5 +209,4 @@ void gen_personal_welcome(char welcome_message[], char personalized_message[], c
   strcpy(personalized_message, welcome_message);
   strcat(personalized_message, "\nYour ip is ");
   strcat(personalized_message, hostname);
-  strcat(personalized_message, "\0");
 }
